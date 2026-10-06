@@ -8,6 +8,7 @@ use App\Support\ReportQuery;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
+use App\Models\PaymentMethod;
 
 class SalesItemsTable extends TableWidget
 {
@@ -60,6 +61,7 @@ class SalesItemsTable extends TableWidget
 
                 TextColumn::make('sale.payment_method')
                     ->label('Bayar')
+                    ->formatStateUsing(fn ($state): string => PaymentMethod::label((string) $state))
                     ->badge(),
             ])
             ->defaultSort('id', 'desc')

@@ -22,6 +22,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\PaymentMethod;
 use UnitEnum;
 
 class SaleResource extends Resource
@@ -119,11 +120,7 @@ class SaleResource extends Resource
                         ->formatStateUsing(fn ($state): string => rupiah($state)),
                     TextEntry::make('payment_method')
                         ->label('Metode')
-                        ->formatStateUsing(fn ($state): string => [
-                            'tunai' => 'Tunai',
-                            'transfer' => 'Transfer',
-                            'qris' => 'QRIS',
-                        ][$state] ?? $state),
+                        ->formatStateUsing(fn ($state): string => PaymentMethod::label((string) $state)),
                     TextEntry::make('paid_amount')
                         ->label('Dibayar')
                         ->formatStateUsing(fn ($state): string => rupiah($state)),
@@ -171,6 +168,7 @@ class SaleResource extends Resource
                     ->sortable(),
 
                 TextColumn::make('payment_method')
+                    ->formatStateUsing(fn (string $state): string => PaymentMethod::label($state))
                     ->label('Bayar')
                     ->badge(),
 
@@ -194,7 +192,7 @@ class SaleResource extends Resource
 
                 SelectFilter::make('payment_method')
                     ->label('Metode bayar')
-                    ->options(['tunai' => 'Tunai', 'transfer' => 'Transfer', 'qris' => 'QRIS']),
+                    ->options(fn (): array => PaymentMethod::labels()),
 
                 SelectFilter::make('cashier_id')
                     ->label('Kasir')

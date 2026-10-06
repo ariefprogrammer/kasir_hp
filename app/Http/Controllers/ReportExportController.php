@@ -27,7 +27,7 @@ class ReportExportController extends Controller
             'startDate' => ['nullable', 'date'],
             'endDate' => ['nullable', 'date'],
             'cashier_id' => ['nullable', 'integer'],
-            'payment_method' => ['nullable', 'in:tunai,transfer,qris'],
+            'payment_method' => ['nullable', 'string', 'max:30'],
             'category_id' => ['nullable', 'integer'],
             'product_id' => ['nullable', 'integer'],
         ]);

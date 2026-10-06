@@ -44,12 +44,7 @@ class Sale extends Model
 
     public function paymentLabel(): string
     {
-        return match ($this->payment_method) {
-            'tunai' => 'Tunai',
-            'transfer' => 'Transfer',
-            'qris' => 'QRIS',
-            default => ucfirst($this->payment_method),
-        };
+        return PaymentMethod::label($this->payment_method);
     }
 
     public function receiptText(): string

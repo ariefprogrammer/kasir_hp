@@ -10,6 +10,8 @@ use Livewire\Component;
 use App\Models\Sale;
 use App\Services\SaleService;
 use InvalidArgumentException;
+use App\Models\PaymentMethod;
+use Illuminate\Validation\Rule;
 
 #[Layout('layouts.pos')]
 class Pos extends Component
@@ -25,7 +27,7 @@ class Pos extends Component
      */
     public array $cart = [];
 
-    public string $paymentMethod = 'tunai';
+    public string $paymentMethod = '';
 
     public string $paidAmount = '';
 
@@ -57,6 +59,7 @@ class Pos extends Component
 
             $this->cart = array_intersect_key($cart, array_flip($validIds));
         }
+        $this->paymentMethod = $this->defaultPaymentMethod();
     }
 
     public function dehydrate(): void
@@ -187,7 +190,7 @@ class Pos extends Component
     #[Computed]
     public function change(): int
     {
-        if ($this->paymentMethod !== 'tunai') {
+        if (! $this->isCash) {
             return 0;
         }
 
@@ -209,7 +212,8 @@ class Pos extends Component
             return false;
         }
 
-        return $this->paymentMethod !== 'tunai' || (int) $this->paidAmount >= $this->total;
+        return $this->paymentMethod !== ''
+            && (! $this->isCash || (int) $this->paidAmount >= $this->total);
     }
 
     #[Computed]
@@ -235,13 +239,32 @@ class Pos extends Component
         $this->lastSaleId = null;
     }
 
+    private function defaultPaymentMethod(): string
+    {
+        return (string) array_key_first(PaymentMethod::activeOptions());
+    }
+
+    #[Computed]
+    public function paymentMethods(): array
+    {
+        return PaymentMethod::activeOptions();
+    }
+
+    #[Computed]
+    public function isCash(): bool
+    {
+        return (bool) PaymentMethod::query()
+            ->where('code', $this->paymentMethod)
+            ->value('is_cash');
+    }
+
     public function checkout(SaleService $sales): void
     {
         $this->resetErrorBag('checkout');
 
         $this->validate([
-            'paymentMethod' => ['required', 'in:tunai,transfer,qris'],
-            'paidAmount' => ['required_if:paymentMethod,tunai', 'integer', 'min:0'],
+            'paymentMethod' => ['required', Rule::in(array_keys(PaymentMethod::activeOptions()))],
+            'paidAmount' => [Rule::requiredIf($this->isCash), 'integer', 'min:0'],
             'customerName' => ['nullable', 'string', 'max:100'],
             'customerPhone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s]+$/'],
         ]);
@@ -270,6 +293,7 @@ class Pos extends Component
 
         $this->lastSaleId = $sale->id;
         $this->reset(['cart', 'paymentMethod', 'paidAmount', 'customerName', 'customerPhone']);
+        $this->paymentMethod = $this->defaultPaymentMethod();
         $this->dispatch('sale-completed');
     }
 

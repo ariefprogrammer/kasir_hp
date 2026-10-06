@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use App\Models\AuditLog;
+use App\Models\PaymentMethod;
 
 class SaleService
 {
@@ -150,8 +151,16 @@ class SaleService
             ];
         }
 
-        $method = $payment['payment_method'];
-        $paid = $method === 'tunai' ? (int) $payment['paid_amount'] : $total;
+        $method = PaymentMethod::query()
+            ->where('code', $payment['payment_method'])
+            ->where('is_active', true)
+            ->first();
+
+        if (! $method) {
+            throw new InvalidArgumentException('Metode pembayaran tidak tersedia.');
+        }
+
+        $paid = $method->is_cash ? (int) $payment['paid_amount'] : $total;
 
         if ($paid < $total) {
             throw new InvalidArgumentException('Uang diterima kurang dari total.');
@@ -164,7 +173,7 @@ class SaleService
             'customer_phone' => $payment['customer_phone'] ?: null,
             'subtotal' => $subtotal,
             'total' => $total,
-            'payment_method' => $method,
+            'payment_method' => $method->code,
             'paid_amount' => $paid,
             'change_amount' => $paid - $total,
             'status' => 'selesai',

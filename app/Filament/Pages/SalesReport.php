@@ -17,6 +17,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use App\Filament\Pages\Concerns\HasExportActions;
+use App\Models\PaymentMethod;
 
 class SalesReport extends BaseDashboard
 {
@@ -84,7 +85,7 @@ class SalesReport extends BaseDashboard
 
                     Select::make('payment_method')
                         ->label('Metode bayar')
-                        ->options(['tunai' => 'Tunai', 'transfer' => 'Transfer', 'qris' => 'QRIS'])
+                        ->options(fn (): array => PaymentMethod::labels())
                         ->placeholder('Semua metode'),
 
                     Select::make('category_id')

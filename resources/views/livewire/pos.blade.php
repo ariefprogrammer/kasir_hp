@@ -165,16 +165,18 @@
 
             @if ($this->cartItems->isNotEmpty())
                 <div class="mt-4 space-y-3 border-t pt-4">
-                    <div class="grid grid-cols-3 gap-2">
-                        @foreach (['tunai' => 'Tunai', 'transfer' => 'Transfer', 'qris' => 'QRIS'] as $value => $label)
-                            <label class="flex h-11 cursor-pointer items-center justify-center rounded-lg border border-gray-300 text-sm has-[:checked]:border-blue-600 has-[:checked]:bg-blue-600 has-[:checked]:text-white">
+                    <div class="flex flex-wrap gap-2">
+                        @forelse ($this->paymentMethods as $value => $label)
+                            <label class="flex h-11 min-w-24 flex-1 cursor-pointer items-center justify-center rounded-lg border border-gray-300 px-2 text-sm has-[:checked]:border-blue-600 has-[:checked]:bg-blue-600 has-[:checked]:text-white">
                                 <input type="radio" wire:model.live="paymentMethod" value="{{ $value }}" class="sr-only">
                                 {{ $label }}
                             </label>
-                        @endforeach
+                        @empty
+                            <p class="text-sm text-red-600">Belum ada metode pembayaran aktif. Hubungi Owner.</p>
+                        @endforelse
                     </div>
 
-                    @if ($paymentMethod === 'tunai')
+                    @if ($this->isCash)
                         <div>
                             <label class="text-xs text-gray-600">Uang diterima</label>
                             <div class="mt-1 flex gap-2">

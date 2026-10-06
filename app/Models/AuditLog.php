@@ -41,6 +41,7 @@ class AuditLog extends Model
         ExpenseCategory::class => 'Kategori Pengeluaran',
         User::class => 'Pengguna',
         Sale::class => 'Transaksi',
+        PaymentMethod::class => 'Metode Pembayaran',
     ];
 
     public const FIELD_LABELS = [
@@ -67,6 +68,9 @@ class AuditLog extends Model
         'expense_category_id' => 'Kategori pengeluaran',
         'status' => 'Status',
         'void_reason' => 'Alasan void',
+        'code' => 'Kode',
+        'is_cash' => 'Tunai (ada kembalian)',
+        'sort_order' => 'Urutan',
     ];
 
     protected $fillable = [
