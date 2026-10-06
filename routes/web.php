@@ -7,7 +7,7 @@ use App\Http\Controllers\ReportExportController;
 use App\Livewire\Rekomendasi;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/admin');
 });
 
 Route::livewire('/pos', Pos::class)
