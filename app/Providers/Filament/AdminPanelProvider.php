@@ -18,6 +18,9 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use Filament\Navigation\NavigationItem;
+use Filament\Support\Icons\Heroicon;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -38,8 +41,25 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
-                AccountWidget::class,
-                FilamentInfoWidget::class,
+                // AccountWidget::class,
+                // FilamentInfoWidget::class,
+            ])
+            ->plugins([
+                FilamentShieldPlugin::make(),
+            ])
+            ->navigationItems([
+                NavigationItem::make('Kasir')
+                    ->url(fn (): string => route('pos'))
+                    ->icon(Heroicon::OutlinedCalculator)
+                    ->group('Penjualan')
+                    ->sort(1)
+                    ->visible(fn (): bool => auth()->user()?->hasAnyRole(['owner', 'admin', 'kasir']) ?? false),
+                NavigationItem::make('Rekomendasi')
+                    ->url(fn (): string => route('recommendation'))
+                    ->icon(Heroicon::OutlinedSparkles)
+                    ->group('Penjualan')
+                    ->sort(2)
+                    ->visible(fn (): bool => auth()->user()?->hasAnyRole(['owner', 'admin', 'kasir']) ?? false),
             ])
             ->middleware([
                 EncryptCookies::class,
