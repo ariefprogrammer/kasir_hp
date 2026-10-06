@@ -14,12 +14,13 @@ use Filament\Panel;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use App\Models\Concerns\Auditable;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, Auditable;
 
     protected $fillable = [
         'name',
@@ -27,6 +28,8 @@ class User extends Authenticatable implements FilamentUser
         'password',
         'is_active',
     ];
+
+    protected array $auditHidden = ['password'];
 
     protected function casts(): array
     {

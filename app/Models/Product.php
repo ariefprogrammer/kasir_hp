@@ -8,16 +8,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Concerns\Auditable;
 
 class Product extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, Auditable;
 
     protected $fillable = [
         'category_id', 'name', 'sku', 'barcode', 'brand',
         'cost_price', 'sell_price', 'stock', 'min_stock',
         'condition', 'photo', 'is_active',
     ];
+
+    protected array $auditExclude = ['stock'];
 
     protected function casts(): array
     {

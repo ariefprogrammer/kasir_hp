@@ -9,6 +9,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use App\Models\AuditLog;
 
 class SaleService
 {
@@ -78,6 +79,15 @@ class SaleService
                 'voided_by' => $user->id,
                 'voided_at' => now(),
             ]);
+
+            AuditLog::record(
+                'void',
+                $locked,
+                ['status' => 'selesai'],
+                ['status' => 'void', 'void_reason' => $reason],
+                $locked->invoice_no . ' (' . rupiah($locked->total) . ')',
+                $user->id,
+            );
 
             return $locked;
         });
