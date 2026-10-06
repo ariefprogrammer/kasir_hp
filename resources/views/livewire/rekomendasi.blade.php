@@ -126,12 +126,20 @@
                 <p class="text-sm text-gray-600">{{ $this->total }} produk ditemukan</p>
                 <label class="flex items-center gap-2 text-sm">
                     Urutkan
-                    <select wire:model.live="sort" class="h-11 rounded border border-gray-300 bg-white px-2">
-                        <option value="price_asc">Harga termurah</option>
-                        <option value="price_desc">Harga termahal</option>
-                        <option value="ram_desc">RAM terbesar</option>
-                        <option value="battery_desc">Baterai terbesar</option>
-                    </select>
+                    <div class="relative">
+                        <select wire:model.live="sort" class="h-8 appearance-none rounded border border-gray-300 bg-white pl-3 pr-10 cursor-pointer">
+                            <option value="price_asc">Harga termurah</option>
+                            <option value="price_desc">Harga termahal</option>
+                            <option value="ram_desc">RAM terbesar</option>
+                            <option value="battery_desc">Baterai terbesar</option>
+                        </select>
+                        
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5">
+                                <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
                 </label>
             </div>
 
