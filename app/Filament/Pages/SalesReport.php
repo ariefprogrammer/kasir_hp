@@ -36,7 +36,7 @@ class SalesReport extends BaseDashboard
 
     public static function getNavigationSort(): ?int
     {
-        return 10;
+        return 7;
     }
 
     public static function getNavigationIcon(): string|BackedEnum|null

@@ -34,7 +34,7 @@ class CashierOmsetReport extends BaseDashboard
 
     public static function getNavigationSort(): ?int
     {
-        return 20;
+        return 9;
     }
 
     public static function getNavigationIcon(): string|BackedEnum|null

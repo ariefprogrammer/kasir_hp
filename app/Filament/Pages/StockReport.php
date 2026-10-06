@@ -27,7 +27,7 @@ class StockReport extends BaseDashboard
 
     public static function getNavigationSort(): ?int
     {
-        return 40;
+        return 10;
     }
 
     public static function getNavigationIcon(): string|BackedEnum|null

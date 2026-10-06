@@ -38,7 +38,7 @@ class SaleResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Penjualan';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 4;
 
     // Resource hanya-baca: transaksi dibuat dari halaman POS, dibatalkan lewat void.
     public static function canCreate(): bool

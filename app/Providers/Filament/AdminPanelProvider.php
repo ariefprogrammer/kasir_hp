@@ -21,6 +21,7 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Navigation\NavigationItem;
 use Filament\Support\Icons\Heroicon;
+use Filament\Navigation\NavigationGroup;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -33,6 +34,20 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->colors([
                 'primary' => Color::Amber,
+            ])
+            ->navigationGroups([
+                NavigationGroup::make()
+                    ->label('Master Data'),
+                NavigationGroup::make()
+                    ->label('Penjualan'), 
+                NavigationGroup::make()
+                    ->label('Keuangan'),
+                NavigationGroup::make()
+                    ->label('Laporan'),
+                NavigationGroup::make()
+                    ->label('Pengaturan'),
+                NavigationGroup::make()
+                    ->label('Filament Shield'), 
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
@@ -52,13 +67,13 @@ class AdminPanelProvider extends PanelProvider
                     ->url(fn (): string => route('pos'))
                     ->icon(Heroicon::OutlinedCalculator)
                     ->group('Penjualan')
-                    ->sort(1)
+                    ->sort(2)
                     ->visible(fn (): bool => auth()->user()?->hasAnyRole(['owner', 'admin', 'kasir']) ?? false),
                 NavigationItem::make('Rekomendasi')
                     ->url(fn (): string => route('recommendation'))
                     ->icon(Heroicon::OutlinedSparkles)
                     ->group('Penjualan')
-                    ->sort(2)
+                    ->sort(3)
                     ->visible(fn (): bool => auth()->user()?->hasAnyRole(['owner', 'admin', 'kasir']) ?? false),
             ])
             ->middleware([

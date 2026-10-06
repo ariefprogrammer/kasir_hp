@@ -33,7 +33,7 @@ class ProfitLossReport extends BaseDashboard
 
     public static function getNavigationSort(): ?int
     {
-        return 30;
+        return 8;
     }
 
     public static function getNavigationIcon(): string|BackedEnum|null
