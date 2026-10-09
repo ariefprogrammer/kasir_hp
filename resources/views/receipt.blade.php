@@ -143,6 +143,12 @@
         @foreach ($sale->items as $item)
             <div class="item">
                 <div>{{ $item->product_name }}</div>
+                @if ($item->imei)
+                    <div>IMEI: {{ $item->imei }}</div>
+                @endif
+                @if ($item->imei2)
+                    <div>IMEI 2: {{ $item->imei2 }}</div>
+                @endif
                 <div class="row">
                     <span>{{ $item->qty }} x {{ rupiah($item->deal_price) }}</span>
                     <span>{{ rupiah($item->subtotal) }}</span>

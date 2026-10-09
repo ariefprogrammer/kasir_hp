@@ -12,6 +12,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Utilities\Set;
 
 class ProductForm
 {
@@ -33,6 +34,11 @@ class ProductForm
                                     ->preload()
                                     ->required()
                                     ->live()
+                                    ->afterStateUpdated(function ($state, Set $set, string $operation): void {
+                                        if ($operation === 'create' && $state) {
+                                            $set('track_imei', Category::whereKey($state)->value('type') === 'handphone');
+                                        }
+                                    })
                                     ->createOptionForm([
                                         TextInput::make('name')
                                             ->label('Nama kategori')
@@ -76,6 +82,12 @@ class ProductForm
                                     ->default('baru')
                                     ->required(),
 
+                                Toggle::make('track_imei')
+                                    ->label('Catat IMEI / serial per unit')
+                                    ->helperText('Opsional. Untuk handphone, tablet, dan barang berserial lain. Isi IMEI-nya di tab "Unit IMEI" setelah produk disimpan.')
+                                    ->default(false)
+                                    ->inline(false),
+                                    
                                 FileUpload::make('photo')
                                     ->label('Foto')
                                     ->image()

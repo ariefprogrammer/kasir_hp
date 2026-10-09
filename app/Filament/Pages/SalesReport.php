@@ -18,6 +18,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use App\Filament\Pages\Concerns\HasExportActions;
 use App\Models\PaymentMethod;
+use Filament\Forms\Components\Toggle;
 
 class SalesReport extends BaseDashboard
 {
@@ -102,6 +103,10 @@ class SalesReport extends BaseDashboard
                             ->pluck('name', 'id'))
                         ->getOptionLabelUsing(fn ($value) => Product::withTrashed()->find($value)?->name)
                         ->placeholder('Semua produk'),
+
+                    Toggle::make('loss_only')
+                        ->label('Hanya penjualan rugi (di bawah modal)')
+                        ->inline(false),
                 ]),
         ]);
     }

@@ -11,7 +11,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ReportExportController extends Controller
 {
-    private const FILTER_KEYS = ['preset', 'startDate', 'endDate', 'cashier_id', 'payment_method', 'category_id', 'product_id'];
+    private const FILTER_KEYS = ['preset', 'startDate', 'endDate', 'cashier_id', 'payment_method', 'category_id', 'product_id', 'loss_only'];
 
     public function __invoke(Request $request, string $report, string $format)
     {
@@ -30,6 +30,7 @@ class ReportExportController extends Controller
             'payment_method' => ['nullable', 'string', 'max:30'],
             'category_id' => ['nullable', 'integer'],
             'product_id' => ['nullable', 'integer'],
+            'loss_only' => ['nullable', 'boolean'],
         ]);
 
         $filters = $request->only(self::FILTER_KEYS);

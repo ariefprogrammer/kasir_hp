@@ -96,9 +96,16 @@ class SaleResource extends Resource
                 ->schema([
                     RepeatableEntry::make('items')
                         ->label('')
-                        ->columns(5)
+                        ->columns(4)
                         ->schema([
                             TextEntry::make('product_name')->label('Produk'),
+                            TextEntry::make('imei')
+                                ->label('IMEI')
+                                ->placeholder('-'),
+
+                            TextEntry::make('imei2')
+                                ->label('IMEI 2')
+                                ->placeholder('-'),
                             TextEntry::make('qty')->label('Qty'),
                             TextEntry::make('standard_price')
                                 ->label('Harga standar')

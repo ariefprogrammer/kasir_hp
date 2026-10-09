@@ -31,6 +31,14 @@ class StockService
                 throw new InvalidArgumentException('Stok tidak boleh kurang dari 0.');
             }
 
+            $availableUnits = $locked->units()->where('status', 'tersedia')->count();
+
+            if ($newStock < $availableUnits) {
+                throw new InvalidArgumentException(
+                    "Stok tidak boleh kurang dari jumlah unit ber-IMEI yang tersedia ({$availableUnits}). Hapus unit IMEI terkait lebih dulu."
+                );
+            }
+
             $locked->update(['stock' => $newStock]);
 
             $movement = $locked->stockMovements()->create([

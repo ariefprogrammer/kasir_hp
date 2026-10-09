@@ -19,6 +19,7 @@ class ReportData
             $item->sale->sold_at->format('d/m/Y H:i'),
             $item->sale->cashier?->name,
             $item->product_name,
+            collect([$item->imei, $item->imei2])->filter()->implode(' / '),
             $item->qty,
             $item->standard_price,
             $item->deal_price,
@@ -30,10 +31,17 @@ class ReportData
         return [
             'title' => 'Laporan Penjualan',
             'period' => self::period($filters),
-            'headings' => ['No. Invoice', 'Waktu', 'Kasir', 'Produk', 'Qty', 'Harga standar', 'Harga deal', 'Selisih nego', 'Subtotal', 'Metode'],
+            'headings' => ['No. Invoice', 'Waktu', 'Kasir', 'Produk', 'IMEI', 'Qty', 'Harga standar', 'Harga deal', 'Selisih nego', 'Subtotal', 'Metode'],
             'rows' => $rows,
-            'footer' => ['', '', '', 'TOTAL', (int) $items->sum('qty'), '', '', (int) $rows ? array_sum(array_column($rows, 7)) : 0, (int) $items->sum('subtotal'), ''],
-            'money' => [5, 6, 7, 8],
+            'footer' => [
+                '', '', '', 'TOTAL', '',
+                (int) $items->sum('qty'),
+                '', '',
+                array_sum(array_column($rows, 8)),
+                (int) $items->sum('subtotal'),
+                '',
+            ],
+            'money' => [6, 7, 8, 9],
             'orientation' => 'landscape',
         ];
     }

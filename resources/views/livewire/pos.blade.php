@@ -44,13 +44,16 @@
                 autofocus
                 class="mb-4 h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-base"
             >
+            @error('scan')
+                <p class="-mt-2 mb-3 text-sm text-red-600">{{ $message }}</p>
+            @enderror
 
             <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
                 @forelse ($this->products as $product)
                     <button
                         type="button"
                         wire:key="product-{{ $product->id }}"
-                        wire:click="addToCart({{ $product->id }})"
+                        wire:click="selectProduct({{ $product->id }})"
                         class="flex h-full flex-col overflow-hidden rounded-lg bg-white text-left shadow hover:ring-2 hover:ring-blue-500"
                     >
                         @if ($product->photo)
@@ -66,7 +69,9 @@
                         <div class="flex flex-1 flex-col p-3">
                             <p class="line-clamp-2 text-sm font-medium">{{ $product->name }}</p>
                             <p class="mt-1 text-xs text-gray-500">{{ $product->sku }} &middot; stok {{ $product->stock }}</p>
-                            
+                            @if ($product->track_imei)
+                                <p class="mt-1 text-xs text-gray-500">{{ $product->available_units_count }} unit ber-IMEI</p>
+                            @endif
                             {{-- Tambahkan mt-auto agar harga selalu terdorong ke posisi paling bawah card --}}
                             <div class="mt-auto pt-2">
                                 <p class="font-semibold text-blue-700">Rp {{ number_format($product->sell_price, 0, ',', '.') }}</p>
@@ -90,64 +95,63 @@
             </div>
 
             @forelse ($this->cartItems as $item)
-                <div wire:key="cart-{{ $item->id }}" class="border-b py-3">
+                <div wire:key="cart-{{ $item->key }}" class="border-b py-3">
                     <div class="flex items-start justify-between gap-2">
                         <div>
                             <p class="font-medium">{{ $item->name }}</p>
-                            <p class="text-xs text-gray-500">
-                                Standar: Rp {{ number_format($item->standard_price, 0, ',', '.') }}
-                            </p>
+
+                            @if ($item->is_unit)
+                                <p class="text-xs text-gray-600">
+                                    IMEI: {{ $item->imei ?? '-' }}@if ($item->imei2) &middot; IMEI 2: {{ $item->imei2 }}@endif
+                                </p>
+                            @elseif ($item->tracks_imei)
+                                <p class="text-xs text-amber-600">Tanpa IMEI</p>
+                            @endif
+
+                            <p class="text-xs text-gray-500">Standar: {{ rupiah($item->standard_price) }}</p>
                         </div>
-                        <button type="button" wire:click="removeFromCart({{ $item->id }})" class="h-11 w-11 shrink-0 text-red-600">&times;</button>
+                        <button type="button" wire:click="removeFromCart('{{ $item->key }}')" class="h-11 w-11 shrink-0 text-red-600">&times;</button>
                     </div>
 
                     <div class="mt-2 grid grid-cols-2 gap-2">
                         <label class="text-xs text-gray-600">Qty
-                           <input
+                            <input
                                 type="number" min="1" inputmode="numeric"
-                                wire:model.live.debounce.500ms="cart.{{ $item->id }}.qty"
-                                class="mt-1 h-11 w-full rounded border border-gray-300 px-2 text-base"
+                                wire:model.live.debounce.500ms="cart.{{ $item->key }}.qty"
+                                @disabled($item->is_unit)
+                                class="mt-1 h-11 w-full rounded border border-gray-300 px-2 text-base disabled:bg-gray-100"
                             >
                         </label>
                         <label class="text-xs text-gray-600">Harga deal
                             <input
                                 type="number" min="0" inputmode="numeric"
-                                wire:model.live.debounce.500ms="cart.{{ $item->id }}.deal_price"
+                                wire:model.live.debounce.500ms="cart.{{ $item->key }}.deal_price"
                                 class="mt-1 h-11 w-full rounded border border-gray-300 px-2 text-base"
                             >
                         </label>
                     </div>
 
-                    @if ($item->qty > $item->stock)
-                        <p class="mt-1 text-xs text-red-600">Stok hanya {{ $item->stock }}.</p>
+                    @if ($item->issue)
+                        <p class="mt-1 text-xs text-red-600">{{ $item->issue }}</p>
                     @endif
+
                     @if ($item->below_min)
                         <p class="mt-1 text-xs text-red-600">Harga deal terlalu rendah, tidak boleh di bawah batas minimum.</p>
                     @endif
-                    @error("cart.{$item->id}.qty")
-                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                    @enderror
 
                     <div class="mt-2 flex justify-between text-sm">
                         @if ($item->diff !== 0)
                             <span class="{{ $item->diff > 0 ? 'text-orange-600' : 'text-green-600' }}">
-                                {{ $item->diff > 0 ? 'Diskon' : 'Markup' }}
-                                Rp {{ number_format(abs($item->diff), 0, ',', '.') }}
+                                {{ $item->diff > 0 ? 'Diskon' : 'Markup' }} {{ rupiah(abs($item->diff)) }}
                             </span>
                         @else
                             <span></span>
                         @endif
-                        <span class="font-semibold">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
+                        <span class="font-semibold">{{ rupiah($item->subtotal) }}</span>
                     </div>
                 </div>
             @empty
-                <div class="flex flex-col items-center justify-center py-10 text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mb-3 h-12 w-12">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
-                    </svg>
-                    
-                    <p class="text-sm">Keranjang kosong.</p>
-                </div>
+                <p class="py-8 text-center text-sm text-gray-500">Keranjang kosong.</p>
             @endforelse
 
             <div class="mt-4 space-y-1">
@@ -239,4 +243,66 @@
             <span>Rp {{ number_format($this->total, 0, ',', '.') }}</span>
         </button>
     </div>
+    
+    @if ($this->pickerProduct)
+        @php $picker = $this->pickerProduct; @endphp
+
+        <div class="fixed inset-0 z-40 flex items-end justify-center bg-black/50 sm:items-center" wire:click.self="closePicker">
+            <div class="max-h-[85vh] w-full max-w-lg overflow-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl">
+                <div class="mb-3 flex items-start justify-between gap-2">
+                    <div>
+                        <h2 class="text-base font-semibold">Pilih unit: {{ $picker->name }}</h2>
+                        <p class="text-xs text-gray-500">Unit ber-IMEI yang tersedia (maksimal 50 ditampilkan)</p>
+                    </div>
+                    <button type="button" wire:click="closePicker" class="h-11 w-11 shrink-0 text-xl">&times;</button>
+                </div>
+
+                <input
+                    type="search"
+                    wire:model.live.debounce.300ms="unitSearch"
+                    placeholder="Cari IMEI / serial"
+                    class="mb-3 h-12 w-full rounded-lg border border-gray-300 px-3 text-base"
+                >
+
+                @error('scan')
+                    <p class="mb-2 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+
+                @if ($this->pickerAllowGeneric)
+                    <button type="button" wire:click="addToCart({{ $picker->id }})"
+                            class="mb-3 h-12 w-full rounded-lg border border-gray-300 text-sm font-medium">
+                        Tanpa IMEI (jual tanpa mencatat IMEI)
+                    </button>
+                @endif
+
+                <div class="space-y-2">
+                    @forelse ($this->pickerUnits as $unit)
+                        <button
+                            type="button"
+                            wire:key="unit-{{ $unit->id }}"
+                            wire:click="addUnit({{ $unit->id }})"
+                            class="flex min-h-12 w-full items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-left text-sm hover:bg-blue-50"
+                        >
+                            <span>
+                                <span class="block font-medium">{{ $unit->imei ?? $unit->imei2 }}</span>
+                                @if ($unit->imei && $unit->imei2)
+                                    <span class="block text-xs text-gray-500">IMEI 2: {{ $unit->imei2 }}</span>
+                                @endif
+                                @if ($unit->note)
+                                    <span class="block text-xs text-gray-500">{{ $unit->note }}</span>
+                                @endif
+                            </span>
+                            <span class="text-blue-600">Pilih</span>
+                        </button>
+                    @empty
+                        <p class="py-6 text-center text-sm text-gray-500">Tidak ada unit yang cocok.</p>
+                    @endforelse
+                </div>
+
+                <button type="button" wire:click="closePicker" class="mt-4 h-12 w-full rounded-lg bg-blue-600 font-medium text-white">
+                    Selesai
+                </button>
+            </div>
+        </div>
+    @endif
 </div>

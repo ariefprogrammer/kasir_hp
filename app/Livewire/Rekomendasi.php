@@ -9,6 +9,7 @@ use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use App\Support\PosCart;
 
 #[Layout('layouts.pos')]
 class Rekomendasi extends Component
@@ -350,8 +351,10 @@ class Rekomendasi extends Component
     public function addToPos(int $productId): void
     {
         $product = Product::query()
+            ->select(['id', 'name', 'sell_price', 'stock', 'track_imei'])
+            ->withCount('availableUnits')
             ->where('is_active', true)
-            ->find($productId, ['id', 'name', 'sell_price', 'stock']);
+            ->find($productId);
 
         if (! $product || $product->stock < 1) {
             $this->dispatch('toast', message: 'Produk tidak tersedia.', type: 'error');
@@ -359,18 +362,28 @@ class Rekomendasi extends Component
             return;
         }
 
-        $cart = session('pos_cart', []);
-        $current = (int) ($cart[$productId]['qty'] ?? 0);
+        // Produk ber-IMEI: pilih unitnya di halaman POS.
+        if ($product->track_imei && $product->available_units_count > 0) {
+            $this->redirect(route('pos', ['pilih' => $product->id]));
 
-        if ($current + 1 > $product->stock) {
+            return;
+        }
+
+        $cart = PosCart::normalize(session('pos_cart', []));
+        $key = 'p' . $productId;
+        $current = (int) ($cart[$key]['qty'] ?? 0);
+
+        if (PosCart::qtyForProduct($cart, $productId) + 1 > $product->stock) {
             $this->dispatch('toast', message: 'Stok tidak mencukupi.', type: 'error');
 
             return;
         }
 
-        $cart[$productId] = [
+        $cart[$key] = [
+            'product_id' => $productId,
+            'unit_id' => null,
             'qty' => $current + 1,
-            'deal_price' => $cart[$productId]['deal_price'] ?? $product->sell_price,
+            'deal_price' => $cart[$key]['deal_price'] ?? $product->sell_price,
         ];
 
         session(['pos_cart' => $cart]);

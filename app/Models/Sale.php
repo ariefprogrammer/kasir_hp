@@ -62,6 +62,15 @@ class Sale extends Model
 
         foreach ($this->items as $item) {
             $lines[] = $item->product_name;
+
+            if ($item->imei) {
+                $lines[] = 'IMEI: ' . $item->imei;
+            }
+
+            if ($item->imei2) {
+                $lines[] = 'IMEI 2: ' . $item->imei2;
+            }
+
             $lines[] = "{$item->qty} x " . rupiah($item->deal_price) . ' = ' . rupiah($item->subtotal);
         }
 

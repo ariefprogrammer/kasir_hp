@@ -17,7 +17,7 @@ class Product extends Model
     protected $fillable = [
         'category_id', 'name', 'sku', 'barcode', 'brand',
         'cost_price', 'sell_price', 'stock', 'min_stock',
-        'condition', 'photo', 'is_active',
+        'condition', 'photo', 'is_active','track_imei',
     ];
 
     protected array $auditExclude = ['stock'];
@@ -30,6 +30,7 @@ class Product extends Model
             'stock' => 'integer',
             'min_stock' => 'integer',
             'is_active' => 'boolean',
+            'track_imei' => 'boolean',
         ];
     }
 
@@ -50,6 +51,17 @@ class Product extends Model
 
     public function minimumDealPrice(): int
     {
-        return (int) $this->cost_price;
+        // return (int) $this->cost_price;
+        return 0;
+    }
+
+    public function units(): HasMany
+    {
+        return $this->hasMany(ProductUnit::class);
+    }
+
+    public function availableUnits(): HasMany
+    {
+        return $this->hasMany(ProductUnit::class)->where('status', 'tersedia');
     }
 }

@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use App\Models\AuditLog;
 use App\Models\PaymentMethod;
+use App\Models\ProductUnit;
 
 class SaleService
 {
@@ -72,6 +73,9 @@ class SaleService
                     note: 'Void: ' . $reason,
                     userId: $user->id,
                 );
+                if ($item->unit_id) {
+                    ProductUnit::query()->whereKey($item->unit_id)->update(['status' => 'tersedia']);
+                }
             }
 
             $locked->update([
@@ -96,24 +100,49 @@ class SaleService
 
     private function process(User $cashier, array $lines, array $payment): Sale
     {
-        $ids = collect($lines)->pluck('product_id')->unique()->sort()->values();
+        $productIds = collect($lines)->pluck('product_id')->unique()->sort()->values()->all();
+        $unitIds = collect($lines)->pluck('unit_id')->filter()->unique()->sort()->values()->all();
 
         // Kunci baris produk (urut id agar tidak deadlock) selama transaksi berjalan.
         $products = Product::query()
-            ->whereIn('id', $ids)
+            ->whereIn('id', $productIds)
             ->orderBy('id')
             ->lockForUpdate()
             ->get()
             ->keyBy('id');
 
+        $units = empty($unitIds)
+            ? collect()
+            : ProductUnit::query()
+                ->whereIn('id', $unitIds)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+        $availableUnits = ProductUnit::query()
+            ->whereIn('product_id', $productIds)
+            ->where('status', 'tersedia')
+            ->selectRaw('product_id, COUNT(*) as total')
+            ->groupBy('product_id')
+            ->pluck('total', 'product_id');
+
+        $qtyByProduct = [];
+
+        foreach ($lines as $line) {
+            $qtyByProduct[$line['product_id']] = ($qtyByProduct[$line['product_id']] ?? 0) + (int) $line['qty'];
+        }
+
         $subtotal = 0;
         $total = 0;
         $items = [];
+        $usedUnits = [];
 
         foreach ($lines as $line) {
             $product = $products->get($line['product_id']);
             $qty = (int) $line['qty'];
             $deal = (int) $line['deal_price'];
+            $unit = null;
 
             if (! $product || ! $product->is_active) {
                 throw new InvalidArgumentException('Ada produk yang sudah tidak tersedia.');
@@ -123,10 +152,39 @@ class SaleService
                 throw new InvalidArgumentException("Qty {$product->name} minimal 1.");
             }
 
-            if ($product->stock < $qty) {
+            if (($qtyByProduct[$product->id] ?? 0) > $product->stock) {
                 throw new InvalidArgumentException(
                     "Stok {$product->name} tidak mencukupi (tersisa {$product->stock})."
                 );
+            }
+
+            if (! empty($line['unit_id'])) {
+                $unit = $units->get($line['unit_id']);
+
+                if (! $unit || (int) $unit->product_id !== (int) $product->id) {
+                    throw new InvalidArgumentException('Unit IMEI tidak valid.');
+                }
+
+                if ($unit->status !== 'tersedia' || isset($usedUnits[$unit->id])) {
+                    throw new InvalidArgumentException(
+                        'IMEI ' . ($unit->imei ?? $unit->imei2) . ' sudah tidak tersedia.'
+                    );
+                }
+
+                if ($qty !== 1) {
+                    throw new InvalidArgumentException('Satu unit ber-IMEI hanya bisa dijual satu per baris.');
+                }
+
+                $usedUnits[$unit->id] = true;
+            } else {
+                // "Tanpa IMEI" hanya boleh memakai stok yang belum tercatat IMEI-nya.
+                $untracked = max(0, $product->stock - (int) ($availableUnits[$product->id] ?? 0));
+
+                if ($qty > $untracked) {
+                    throw new InvalidArgumentException(
+                        "Sisa stok {$product->name} tanpa IMEI hanya {$untracked}. Pilih unit ber-IMEI."
+                    );
+                }
             }
 
             if ($deal <= 0) {
@@ -143,6 +201,9 @@ class SaleService
             $items[] = [
                 'product_id' => $product->id,
                 'product_name' => $product->name,
+                'imei' => $unit?->imei,
+                'imei2' => $unit?->imei2,
+                'unit_id' => $unit?->id,
                 'qty' => $qty,
                 'cost_price' => $product->cost_price,
                 'standard_price' => $product->sell_price,
@@ -182,6 +243,11 @@ class SaleService
 
         foreach ($items as $item) {
             $sale->items()->create($item);
+
+            // Unit ditandai terjual lebih dulu, baru stok dikurangi (aturan penjaga di StockService).
+            if ($item['unit_id']) {
+                $units->get($item['unit_id'])->update(['status' => 'terjual']);
+            }
 
             $this->stock->move(
                 product: $products->get($item['product_id']),

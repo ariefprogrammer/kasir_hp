@@ -39,6 +39,12 @@ class SalesItemsTable extends TableWidget
                     ->label('Produk')
                     ->searchable(),
 
+                TextColumn::make('imei')
+                    ->label('IMEI')
+                    ->state(fn (SaleItem $record): string => collect([$record->imei, $record->imei2])->filter()->implode(' / '))
+                    ->placeholder('-')
+                    ->searchable(['imei', 'imei2']),
+
                 TextColumn::make('qty')
                     ->label('Qty'),
 
@@ -59,6 +65,13 @@ class SalesItemsTable extends TableWidget
                     ->label('Subtotal')
                     ->formatStateUsing(fn ($state): string => rupiah($state)),
 
+                TextColumn::make('profit')
+                    ->label('Laba')
+                    ->state(fn (SaleItem $record): int => ($record->deal_price - $record->cost_price) * $record->qty)
+                    ->formatStateUsing(fn ($state): string => rupiah($state))
+                    ->color(fn ($state): string => $state < 0 ? 'danger' : 'success')
+                    ->visible(fn (): bool => auth()->user()->isManager()),
+                    
                 TextColumn::make('sale.payment_method')
                     ->label('Bayar')
                     ->formatStateUsing(fn ($state): string => PaymentMethod::label((string) $state))

@@ -14,7 +14,7 @@ trait HasExportActions
         $filters = property_exists($this, 'filters') ? ($this->filters ?? []) : [];
 
         $params = array_filter(
-            Arr::only($filters, ['preset', 'startDate', 'endDate', 'cashier_id', 'payment_method', 'category_id', 'product_id']),
+            Arr::only($filters, ['preset', 'startDate', 'endDate', 'cashier_id', 'payment_method', 'category_id', 'product_id', 'loss_only']),
             fn ($value) => filled($value)
         );
 

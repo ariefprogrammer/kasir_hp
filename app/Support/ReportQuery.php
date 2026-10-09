@@ -37,6 +37,10 @@ class ReportQuery
                 fn (Builder $q) => $q->where('product_id', $filters['product_id'])
             )
             ->when(
+                filter_var($filters['loss_only'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                fn (Builder $q) => $q->whereColumn('deal_price', '<', 'cost_price')
+            )
+            ->when(
                 filled($filters['category_id'] ?? null),
                 fn (Builder $q) => $q->whereHas(
                     'product',

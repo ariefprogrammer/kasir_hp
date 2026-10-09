@@ -76,6 +76,13 @@ class ProductsTable
                         default => 'success',
                     }),
 
+                TextColumn::make('available_units_count')
+                    ->label('Ber-IMEI')
+                    ->counts('availableUnits')
+                    ->formatStateUsing(fn ($state, Product $record): string => $record->track_imei
+                        ? $state . ' / ' . $record->stock
+                        : '-'),
+                        
                 IconColumn::make('is_active')
                     ->label('Aktif')
                     ->boolean(),

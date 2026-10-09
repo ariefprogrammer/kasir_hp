@@ -42,6 +42,7 @@ class AuditLog extends Model
         User::class => 'Pengguna',
         Sale::class => 'Transaksi',
         PaymentMethod::class => 'Metode Pembayaran',
+        ProductUnit::class => 'Unit IMEI',
     ];
 
     public const FIELD_LABELS = [
@@ -71,6 +72,9 @@ class AuditLog extends Model
         'code' => 'Kode',
         'is_cash' => 'Tunai (ada kembalian)',
         'sort_order' => 'Urutan',
+        'imei' => 'IMEI 1 / Serial',
+        'imei2' => 'IMEI 2',
+        'track_imei' => 'Catat IMEI',
     ];
 
     protected $fillable = [
