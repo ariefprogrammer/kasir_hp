@@ -48,6 +48,37 @@
                 <p class="-mt-2 mb-3 text-sm text-red-600">{{ $message }}</p>
             @enderror
 
+            {{-- Kategori: pill ringkas, bisa digeser --}}
+            <div class="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+                <button
+                    type="button"
+                    wire:key="cat-all"
+                    wire:click="selectCategory(null)"
+                    @class([
+                        'h-[38px] shrink-0 whitespace-nowrap rounded-full border px-3 text-sm',
+                        'border-blue-600 bg-blue-600 text-white' => $categoryId === null,
+                        'border-gray-300 bg-white text-gray-700 hover:border-blue-500' => $categoryId !== null,
+                    ])
+                >
+                    Semua ({{ $this->categories->sum('products_count') }})
+                </button>
+
+                @foreach ($this->categories as $category)
+                    <button
+                        type="button"
+                        wire:key="cat-{{ $category->id }}"
+                        wire:click="selectCategory({{ $category->id }})"
+                        @class([
+                            'h-9 shrink-0 whitespace-nowrap rounded-full border px-3 text-sm',
+                            'border-blue-600 bg-blue-600 text-white' => $categoryId === $category->id,
+                            'border-gray-300 bg-white text-gray-700 hover:border-blue-500' => $categoryId !== $category->id,
+                        ])
+                    >
+                        {{ $category->name }} ({{ $category->products_count }})
+                    </button>
+                @endforeach
+            </div>
+
             <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
                 @forelse ($this->products as $product)
                     <button

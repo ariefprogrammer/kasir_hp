@@ -14,6 +14,7 @@ use App\Models\PaymentMethod;
 use Illuminate\Validation\Rule;
 use App\Models\ProductUnit;
 use App\Support\PosCart;
+use App\Models\Category;
 
 #[Layout('layouts.pos')]
 class Pos extends Component
@@ -42,6 +43,8 @@ class Pos extends Component
     public ?int $pickerProductId = null;
 
     public string $unitSearch = '';
+
+    public ?int $categoryId = null;
 
     public function mount(): void
     {
@@ -241,6 +244,25 @@ class Pos extends Component
         $this->resetErrorBag('scan');
     }
 
+    public function selectCategory(?int $categoryId = null): void
+    {
+        // Klik kategori yang sama lagi = batalkan filter
+        $this->categoryId = $this->categoryId === $categoryId ? null : $categoryId;
+        $this->resetErrorBag('scan');
+    }
+
+    #[Computed]
+    public function categories(): Collection
+    {
+        return Category::query()
+            ->select(['id', 'name'])
+            ->withCount(['products as products_count' => fn ($q) => $q
+                ->where('is_active', true)
+                ->where('stock', '>', 0)])
+            ->orderBy('name')
+            ->get();
+    }
+
     public function removeFromCart(string $key): void
     {
         unset($this->cart[$key]);
@@ -259,6 +281,7 @@ class Pos extends Component
             ->withCount('availableUnits')
             ->where('is_active', true)
             ->where('stock', '>', 0)
+            ->when($this->categoryId, fn ($query, $id) => $query->where('category_id', $id))
             ->when($this->search !== '', function ($query) {
                 $term = '%' . $this->search . '%';
 

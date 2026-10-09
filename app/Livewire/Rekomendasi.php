@@ -10,11 +10,14 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use App\Support\PosCart;
+use App\Models\Category;
 
 #[Layout('layouts.pos')]
 class Rekomendasi extends Component
 {
     public string $search = '';
+
+    public ?int $categoryId = null;
 
     public string $priceMin = '';
 
@@ -88,6 +91,10 @@ class Rekomendasi extends Component
                 $q->where('products.name', 'like', $term)
                     ->orWhere('products.brand', 'like', $term);
             });
+        }
+
+        if ($this->categoryId) {
+            $query->where('products.category_id', $this->categoryId);
         }
 
         if ((int) $this->priceMin > 0) {
@@ -290,7 +297,7 @@ class Rekomendasi extends Component
     public function resetFilters(): void
     {
         $this->reset([
-            'search', 'priceMin', 'priceMax', 'ramMin', 'storageMin', 'screenMin',
+            'search', 'categoryId', 'priceMin', 'priceMax', 'ramMin', 'storageMin', 'screenMin',
             'batteryMin', 'cameraMin', 'network', 'os', 'condition', 'brands',
             'showOutOfStock', 'perPage',
         ]);
@@ -299,6 +306,29 @@ class Rekomendasi extends Component
     public function loadMore(): void
     {
         $this->perPage += 24;
+    }
+
+    public function selectCategory(?int $categoryId = null): void
+    {
+        // Klik kategori yang sama lagi = batalkan filter
+        $this->categoryId = $this->categoryId === $categoryId ? null : $categoryId;
+        $this->perPage = 24;
+    }
+
+    #[Computed]
+    public function categories(): Collection
+    {
+        return Category::query()
+            ->select(['id', 'name'])
+            ->withCount(['products as products_count' => function ($q) {
+                $q->where('is_active', true);
+
+                if (! $this->showOutOfStock) {
+                    $q->where('stock', '>', 0);
+                }
+            }])
+            ->orderBy('name')
+            ->get();
     }
 
     public function toggleCompare(int $productId): void
