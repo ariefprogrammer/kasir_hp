@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 class Sale extends Model
 {
     protected $fillable = [
-        'invoice_no', 'cashier_id', 'customer_name', 'customer_phone',
+        'invoice_no', 'cashier_id', 'customer_name', 'customer_phone', 'note',
         'subtotal', 'total', 'payment_method', 'paid_amount', 'change_amount',
         'status', 'void_reason', 'voided_by', 'voided_at', 'sold_at',
     ];
@@ -80,6 +80,10 @@ class Sale extends Model
 
         if ($this->change_amount > 0) {
             $lines[] = 'Kembali: ' . rupiah($this->change_amount);
+        }
+        
+        if ($this->note) {
+            $lines[] = 'Catatan: ' . $this->note;
         }
 
         $lines[] = '';

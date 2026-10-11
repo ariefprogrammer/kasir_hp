@@ -162,6 +162,10 @@
         <div class="row"><span>Bayar ({{ $sale->paymentLabel() }})</span><span>{{ rupiah($sale->paid_amount) }}</span></div>
         <div class="row"><span>Kembali</span><span>{{ rupiah($sale->change_amount) }}</span></div>
 
+        @if ($sale->note)
+            <div style="margin-top: 4px;">Catatan: {{ $sale->note }}</div>
+        @endif
+
         <hr>
 
         <div class="center">{!! nl2br(e($setting->footer)) !!}</div>

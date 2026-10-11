@@ -21,7 +21,7 @@ class SaleService
 
     /**
      * @param array<int, array{product_id: int, qty: int, deal_price: int}> $lines
-     * @param array{payment_method: string, paid_amount: int, customer_name: ?string, customer_phone: ?string} $payment
+     * @param array{payment_method: string, paid_amount: int, customer_name: ?string, customer_phone: ?string, note?: ?string} $payment
      */
     public function checkout(User $cashier, array $lines, array $payment): Sale
     {
@@ -232,6 +232,7 @@ class SaleService
             'cashier_id' => $cashier->id, // selalu dari user login, bukan dari input
             'customer_name' => $payment['customer_name'] ?: null,
             'customer_phone' => $payment['customer_phone'] ?: null,
+            'note' => ($payment['note'] ?? null) ?: null,
             'subtotal' => $subtotal,
             'total' => $total,
             'payment_method' => $method->code,

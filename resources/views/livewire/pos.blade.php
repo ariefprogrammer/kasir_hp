@@ -248,6 +248,13 @@
                         <p class="text-xs text-red-600">{{ $message }}</p>
                     @enderror
 
+                    <textarea wire:model="note" rows="2" maxlength="255"
+                        placeholder="Catatan (opsional), mis. bayar split tunai 300rb + QRIS 200rb"
+                        class="w-full rounded border border-gray-300 px-2 py-2 text-base"></textarea>
+                    @error('note')
+                        <p class="text-xs text-red-600">{{ $message }}</p>
+                    @enderror
+
                     @error('checkout')
                         <p class="rounded bg-red-100 p-2 text-sm text-red-700">{{ $message }}</p>
                     @enderror

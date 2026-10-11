@@ -46,6 +46,8 @@ class Pos extends Component
 
     public ?int $categoryId = null;
 
+    public string $note = '';
+
     public function mount(): void
     {
         $user = auth()->user();
@@ -525,6 +527,7 @@ class Pos extends Component
             'paidAmount' => [Rule::requiredIf($this->isCash), 'integer', 'min:0'],
             'customerName' => ['nullable', 'string', 'max:100'],
             'customerPhone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s]+$/'],
+            'note' => ['nullable', 'string', 'max:255'],
         ]);
 
         $lines = collect($this->cart)
@@ -543,6 +546,7 @@ class Pos extends Component
                 'paid_amount' => (int) $this->paidAmount,
                 'customer_name' => trim($this->customerName),
                 'customer_phone' => trim($this->customerPhone),
+                'note' => trim($this->note),
             ]);
         } catch (InvalidArgumentException $e) {
             $this->addError('checkout', $e->getMessage());
@@ -551,7 +555,7 @@ class Pos extends Component
         }
 
         $this->lastSaleId = $sale->id;
-        $this->reset(['cart', 'paymentMethod', 'paidAmount', 'customerName', 'customerPhone','pickerProductId','unitSearch']);
+        $this->reset(['cart', 'paymentMethod', 'paidAmount', 'customerName', 'customerPhone','pickerProductId','unitSearch', 'note']);
         $this->paymentMethod = $this->defaultPaymentMethod();
         $this->dispatch('sale-completed');
     }

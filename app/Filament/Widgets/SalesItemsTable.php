@@ -76,6 +76,12 @@ class SalesItemsTable extends TableWidget
                     ->label('Bayar')
                     ->formatStateUsing(fn ($state): string => PaymentMethod::label((string) $state))
                     ->badge(),
+
+                TextColumn::make('sale.note')
+                    ->label('Catatan')
+                    ->placeholder('-')
+                    ->wrap()
+                    ->searchable(),
             ])
             ->defaultSort('id', 'desc')
             ->paginated([10, 25, 50]);

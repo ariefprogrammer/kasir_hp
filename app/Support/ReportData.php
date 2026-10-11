@@ -26,12 +26,13 @@ class ReportData
             ($item->standard_price - $item->deal_price) * $item->qty,
             $item->subtotal,
             $item->sale->paymentLabel(),
+            $item->sale->note,
         ])->all();
 
         return [
             'title' => 'Laporan Penjualan',
             'period' => self::period($filters),
-            'headings' => ['No. Invoice', 'Waktu', 'Kasir', 'Produk', 'IMEI', 'Qty', 'Harga standar', 'Harga deal', 'Selisih nego', 'Subtotal', 'Metode'],
+            'headings' => ['No. Invoice', 'Waktu', 'Kasir', 'Produk', 'IMEI', 'Qty', 'Harga standar', 'Harga deal', 'Selisih nego', 'Subtotal', 'Metode', 'Catatan'],
             'rows' => $rows,
             'footer' => [
                 '', '', '', 'TOTAL', '',
@@ -39,6 +40,7 @@ class ReportData
                 '', '',
                 array_sum(array_column($rows, 8)),
                 (int) $items->sum('subtotal'),
+                '',
                 '',
             ],
             'money' => [6, 7, 8, 9],
