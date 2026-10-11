@@ -11,7 +11,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ReportExportController extends Controller
 {
-    private const FILTER_KEYS = ['preset', 'startDate', 'endDate', 'cashier_id', 'payment_method', 'category_id', 'product_id', 'loss_only'];
+    private const FILTER_KEYS = ['preset', 'startDate', 'endDate', 'cashier_id', 'payment_method', 'category_id', 'product_id', 'loss_only', 'movement_types'];
 
     public function __invoke(Request $request, string $report, string $format)
     {
@@ -31,6 +31,8 @@ class ReportExportController extends Controller
             'category_id' => ['nullable', 'integer'],
             'product_id' => ['nullable', 'integer'],
             'loss_only' => ['nullable', 'boolean'],
+            'movement_types' => ['nullable', 'array'],
+            'movement_types.*' => ['string', 'max:30'],
         ]);
 
         $filters = $request->only(self::FILTER_KEYS);
@@ -40,6 +42,7 @@ class ReportExportController extends Controller
             'cashiers' => ReportData::cashiers($filters),
             'profit-loss' => ReportData::profitLoss($filters),
             'stock' => ReportData::stock(),
+            'stock-adjustments' => ReportData::stockAdjustments($filters),
         };
 
         $filename = $report . '-' . now()->format('Ymd-His');

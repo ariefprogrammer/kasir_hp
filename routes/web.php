@@ -20,7 +20,7 @@ Route::get('/struk/{sale}', ReceiptController::class)
 
 Route::get('/laporan-ekspor/{report}/{format}', ReportExportController::class)
     ->middleware('auth')
-    ->whereIn('report', ['sales', 'cashiers', 'profit-loss', 'stock'])
+    ->whereIn('report', ['sales', 'cashiers', 'profit-loss', 'stock', 'stock-adjustments'])
     ->whereIn('format', ['xlsx', 'pdf'])
     ->name('reports.export');
 

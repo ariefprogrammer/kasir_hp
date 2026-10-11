@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Product;
 use App\Models\SaleItem;
+use App\Models\StockMovement;
 
 class ReportData
 {
@@ -169,5 +170,39 @@ class ReportData
         [$from, $until] = DateRange::resolve($filters);
 
         return 'Periode: ' . $from->format('d/m/Y') . ' - ' . $until->format('d/m/Y');
+    }
+
+    public static function stockAdjustments(array $filters): array
+    {
+        $movements = ReportQuery::stockMovements($filters)
+            ->with(['product' => fn ($q) => $q->withTrashed(), 'user:id,name'])
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get();
+
+        $rows = $movements->map(fn (StockMovement $m) => [
+            $m->created_at->format('d/m/Y H:i'),
+            $m->product?->sku,
+            $m->product?->name,
+            StockMovement::typeLabel((string) $m->type),
+            (int) $m->qty,
+            $m->reference,
+            $m->user?->name,
+            $m->note,
+        ])->all();
+
+        $types = ! empty($filters['movement_types'] ?? [])
+            ? collect((array) $filters['movement_types'])->map(fn ($t) => StockMovement::typeLabel((string) $t))->implode(', ')
+            : 'Semua jenis';
+
+        return [
+            'title' => 'Laporan Penyesuaian Stok',
+            'period' => self::period($filters) . ' | Jenis: ' . $types,
+            'headings' => ['Waktu', 'SKU', 'Produk', 'Jenis', 'Jumlah', 'Referensi', 'Oleh', 'Catatan'],
+            'rows' => $rows,
+            'footer' => ['', '', 'TOTAL BERSIH', '', array_sum(array_column($rows, 4)), '', '', ''],
+            'money' => [],
+            'orientation' => 'landscape',
+        ];
     }
 }

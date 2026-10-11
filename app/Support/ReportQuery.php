@@ -6,6 +6,7 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\StockMovement;
 
 class ReportQuery
 {
@@ -68,6 +69,22 @@ class ReportQuery
             ->when(
                 $user->isManager() && filled($filters['cashier_id'] ?? null),
                 fn (Builder $q) => $q->whereKey($filters['cashier_id'])
+            );
+    }
+
+    public static function stockMovements(?array $filters): Builder
+    {
+        [$from, $until] = DateRange::resolve($filters);
+
+        return StockMovement::query()
+            ->whereBetween('stock_movements.created_at', [$from, $until])
+            ->when(
+                ! empty($filters['movement_types'] ?? []),
+                fn (Builder $q) => $q->whereIn('stock_movements.type', (array) $filters['movement_types'])
+            )
+            ->when(
+                filled($filters['product_id'] ?? null),
+                fn (Builder $q) => $q->where('stock_movements.product_id', $filters['product_id'])
             );
     }
 }
