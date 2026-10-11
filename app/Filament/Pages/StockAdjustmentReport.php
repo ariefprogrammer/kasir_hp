@@ -74,7 +74,7 @@ class StockAdjustmentReport extends BaseDashboard
     {
         return $schema->components([
             Section::make()
-                ->columns(4)
+                ->columns(3)
                 ->columnSpanFull()
                 ->schema([
                     ...ReportFilterFields::dateRange(),
