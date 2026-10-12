@@ -22,6 +22,7 @@ use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Navigation\NavigationItem;
 use Filament\Support\Icons\Heroicon;
 use Filament\Navigation\NavigationGroup;
+use Filament\View\PanelsRenderHook;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -76,6 +77,9 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(3)
                     ->visible(fn (): bool => auth()->user()?->hasAnyRole(['owner', 'admin', 'kasir']) ?? false),
             ])
+            ->renderHook(PanelsRenderHook::HEAD_END, fn (): string => view('pwa.head')->render())
+            ->renderHook(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER, fn (): string => view('pwa.install-button', ['class' => 'mt-4'])->render())
+            ->renderHook(PanelsRenderHook::SIDEBAR_NAV_END, fn (): string => view('pwa.install-button', ['class' => 'px-4 pb-4'])->render())
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
